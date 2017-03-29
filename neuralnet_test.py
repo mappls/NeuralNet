@@ -6,6 +6,7 @@ import neuralnet as nn
 import matplotlib.pyplot as plt
 
 FILEPATH_THETAS = "thetas_sinus_1_20_1.pkl"
+PI_CYCLES = 2
 
 
 # Generate a random number where:  a <= rand < b
@@ -48,25 +49,15 @@ def test_sinus_data(num_training, num_testing, learn=True):
         Yln = (Yl + 1) / 2
 
         # Learn using scipy. Save learned weights with pickle
-        net.train_scipy(X=Xln, Y=Yln)
+        train_result = net.train_scipy(X=Xln, Y=Yln)
         net.filepath_picklethetas = FILEPATH_THETAS
         net.pickle_thetas()
-
-        # Evaluate the NeuralNet
-        eval_sinus_data(net, num_training, num_testing)
-
     else:
-        # Use pickled thetas to evaluate
-        net2 = nn.NeuralNet(_lambda=_lambda, shape=shape)
-        net2.weights = net.load_thetas(FILEPATH_THETAS)
-        eval_sinus_data(net2, num_training, num_testing)
+        # Use weights from file
+        net.weights = net.load_thetas(FILEPATH_THETAS)
+        train_result = None
 
-
-# Evaluate NeuralNet using the sinus test.
-def eval_sinus_data(net, num_training, num_testing):
-    PI_CYCLES = 2
-
-    # Generate data for evaluation
+    # Generate data for testing
     Xeun = [rand(-3.14 * PI_CYCLES, 3.14 * PI_CYCLES) for _ in range(num_testing)]
     Xeun = sorted(Xeun)
     Ye = np.sin(Xeun)
@@ -78,33 +69,37 @@ def eval_sinus_data(net, num_training, num_testing):
     # Xen2 = (Xeun - np.mean(Xeun)) / (max(Xeun) - min(Xeun))  # mean zero normalisation
     Yen = (Ye + 1) / 2
 
-    # Get predictions
-    preds, _ = net.forward_prop(net.weights, Xen)
+    # Test
+    Jtrain, predictions = net.test(Xen, Yen)
 
     # Un-normalize data
-    preds_un = (preds * 2) - 1
+    preds_un = (predictions * 2) - 1
 
-    # Print params
-    print('Used parameters:')
+    # Print details
+    print('Test details:')
     print('-------------------')
     print("NN shape,:", net.shape)
     print("Training samples:", num_training)
     print("Testing samples:", num_testing)
     print("Lambda:", net._lambda)
     print("init_weights interval: [%.2f, %.2f]" % (np.min(nn.wrap_thetas(net.init_weights)),
-                                               np.max(nn.wrap_thetas(net.init_weights))))
+                                                   np.max(nn.wrap_thetas(net.init_weights))))
     print("Method: scipy.optimize.minimize (BFGS)")
     print("Data normalisation: input: normalised [0,1] / output: [0,1]")
+    print("Train error:", train_result.fun if train_result else None)
+    print("Test error:", Jtrain)
     print('-----------------------------------------------------------')
 
-    plt.plot(Xeun, Ye, "-", label="sinus")
-    plt.plot(Xeun, preds_un, "x", label="estimated")
+    plt.plot(Xeun, Ye, "-", label="sin(x)")
+    plt.plot(Xeun, preds_un, "x", label="estimation")
+    plt.xlabel('x')
     plt.legend()
+    plt.savefig("sinus_test.png")
     plt.show()
 
 
 def main():
-    test_sinus_data(num_training=5000, num_testing=1000, learn=True)
+    test_sinus_data(num_training=5000, num_testing=1000, learn=False)
 
 
 if __name__ == '__main__':

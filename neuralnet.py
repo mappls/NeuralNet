@@ -154,6 +154,14 @@ class NeuralNet:
         self.weights = unwrap_thetas(res.x, self.shape)
         return res
 
+    # Test the algorithm using the learned weights
+    # Xt, Yt - the input and output (correct) data
+    # Returns the test error Jtest, and the predicted values (hypothesis)
+    def test(self, Xt, Yt):
+        hypothesis, _ = self.forward_prop(self.weights, Xt)
+        Jtest = self.cost(self.weights, Yt, hypothesis)
+        return Jtest, hypothesis
+
     # Save the cost function of each iteration to text file
     def cost_to_text(self):
         with open(self.filepath_itertext, 'a') as file:
@@ -231,13 +239,23 @@ if __name__ == "__main__":
     #
     # A simple test
     #
+
+    # Create a NeuralNet object and generate some data (XOR function)
     nn = NeuralNet((2, 4, 1))
     X = np.array([[0, 0],
                   [0, 1],
                   [1, 0],
                   [1, 1]])
-    Y = np.array([[0.5, 1, 1, 0.5]]).T
-    nn.train_scipy(X, Y)
+    Y = np.array([[0, 1, 1, 0]]).T
+
+    # Train the network and print result
+    res = nn.train_scipy(X, Y)
+    if res.success:
+        print("Train error:", res.fun)
+
+    # Test using a single sample
+    Jtest, _ = nn.test(np.array([X[0]]), np.array([Y[0]]))
+    print("Test error:", Jtest)
     print("prediction for [0,0]:", nn.forward_prop(nn.weights, np.array([[0, 0]]))[0])
     print("prediction for [0,1]:", nn.forward_prop(nn.weights, np.array([[0, 1]]))[0])
     print("prediction for [1,0]:", nn.forward_prop(nn.weights, np.array([[1, 0]]))[0])
