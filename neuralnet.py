@@ -10,16 +10,26 @@ class NeuralNet:
     #
     # Class members
     #
+    J = None  # cost function
+    name = None
+    _lambda = 0
+    weights = []
     shape = None
     layer_count = 0
-    weights = []
     init_weights = []
+    filepath_itertext = None
+    filepath_pickleself = None
+    filepath_picklethetas = None
+
 
     #
     # Class methods
     #
-    def __init__(self, shape, init_weights=None, _lambda=None):
+    def __init__(self, shape, name=None, init_weights=None, _lambda=None):
         """Initialisation"""
+
+        # Network name
+        self.name = name if name is not None else "default"
 
         # Cost function J
         self.J = None
@@ -46,9 +56,9 @@ class NeuralNet:
         self.weights = self.init_weights
 
         # Filepaths used to save data
-        self.filepath_pickleself = "my_nn.pkl"
-        self.filepath_itertext = "iterations.txt"
-        self.filepath_picklethetas = "thetas.pkl"
+        self.filepath_pickleself = "nn" + self.name + ".pkl"
+        self.filepath_itertext = "iterations" + self.name + ".txt"
+        self.filepath_picklethetas = "thetas" + self.name + ".pkl"
 
         # Open a text file to save the cost function of each iteration
         file = open(self.filepath_itertext, 'w')
@@ -115,7 +125,7 @@ class NeuralNet:
         derivs = np.array(wrap_thetas(derivs))
         return derivs
 
-    # An iteration of forward-back propagation. Returns the cost function J and the weights partial derivatives
+    # An iteration of forward-back propagation. Returns the cost function J and the weights' partial derivatives
     def iterate(self, thetas_list, x, y):
 
         thetas = unwrap_thetas(thetas_list, self.shape)
@@ -169,13 +179,17 @@ class NeuralNet:
             file.close()
 
     # Save the NeuralNet to a file using pickle
-    def pickle_self(self):
-        with open(self.filepath_pickleself, 'wb') as file:
+    def pickle_self(self, filepath=None):
+        if filepath is None:
+            filepath = self.filepath_pickleself
+        with open(filepath, 'wb') as file:
             pickle.dump(self, file)
 
     # Save the (learned) weights to file using pickle
-    def pickle_thetas(self):
-        with open(self.filepath_picklethetas, 'wb') as file:
+    def pickle_thetas(self, filepath=None):
+        if filepath is None:
+            filepath = self.filepath_picklethetas
+        with open(filepath, 'wb') as file:
             pickle.dump(self.weights, file)
 
     # Load weights from file using pickle.
