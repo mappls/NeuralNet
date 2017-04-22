@@ -56,9 +56,9 @@ class NeuralNet:
         self.weights = self.init_weights
 
         # Filepaths used to save data
-        self.filepath_pickleself = "nn" + self.name + ".pkl"
-        self.filepath_itertext = "iterations" + self.name + ".txt"
-        self.filepath_picklethetas = "thetas" + self.name + ".pkl"
+        self.filepath_pickleself = "nn_" + self.name + ".pkl"
+        self.filepath_itertext = "iterations_" + self.name + ".txt"
+        self.filepath_picklethetas = "thetas_" + self.name + ".pkl"
 
         # Open a text file to save the cost function of each iteration
         file = open(self.filepath_itertext, 'w')
@@ -212,7 +212,7 @@ def sigmoid(x, deriv=False):
 
 # Initialisation of weights with shape 'nn_shape' in interval: [-upper_interval, upper_interval]
 def initialise_weights(nn_shape, upper_interval=None):
-    np.random.seed(1)
+    np.random.seed(1)  # todo: change this
     weights = []
     for l1, l2 in zip(nn_shape[:-1], nn_shape[1:]):
         if upper_interval is not None:
