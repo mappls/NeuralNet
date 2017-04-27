@@ -1,7 +1,8 @@
 import os
-import pickle
+import json
 import numpy as np
 from scipy.optimize import minimize
+from collections import OrderedDict
 
 
 class NeuralNet:
@@ -10,7 +11,8 @@ class NeuralNet:
     #
     # Class members
     #
-    J = None  # cost function
+    J = None
+    Jtest = None
     name = None
     _lambda = 0
     weights = []
@@ -18,8 +20,7 @@ class NeuralNet:
     layer_count = 0
     init_weights = []
     filepath_itertext = None
-    filepath_pickleself = None
-    filepath_picklethetas = None
+    filepath_jsonself = None
 
 
     #
@@ -31,8 +32,9 @@ class NeuralNet:
         # Network name
         self.name = name if name is not None else "default"
 
-        # Cost function J
+        # Cost function J, test cost function Jtest
         self.J = None
+        self.Jtest = None
 
         # Number of layers (not counting the first)
         self.layer_count = len(shape) - 1
@@ -43,11 +45,6 @@ class NeuralNet:
         # Regularisation parameter _lambda
         self._lambda = _lambda if _lambda is not None else 0
 
-        # Input / output data from last run
-        # todo: I don't need this
-        self._layer_input = []
-        self._layer_output = []
-
         # Initialise weights
         if init_weights is None:
             self.init_weights = initialise_weights(shape)
@@ -56,9 +53,8 @@ class NeuralNet:
         self.weights = self.init_weights
 
         # Filepaths used to save data
-        self.filepath_pickleself = "nn_" + self.name + ".pkl"
-        self.filepath_itertext = "iterations_" + self.name + ".txt"
-        self.filepath_picklethetas = "thetas_" + self.name + ".pkl"
+        self.filepath_jsonself = "nn_" + self.name + ".json"
+        self.filepath_itertext = "iters_" + self.name + ".txt"
 
         # Open a text file to save the cost function of each iteration
         file = open(self.filepath_itertext, 'w')
@@ -169,8 +165,8 @@ class NeuralNet:
     # Returns the test error Jtest, and the predicted values (hypothesis)
     def test(self, Xt, Yt):
         hypothesis, _ = self.forward_prop(self.weights, Xt)
-        Jtest = self.cost(self.weights, Yt, hypothesis)
-        return Jtest, hypothesis
+        self.Jtest = self.cost(self.weights, Yt, hypothesis)
+        return self.Jtest, hypothesis
 
     # Save the cost function of each iteration to text file
     def cost_to_text(self):
@@ -178,25 +174,69 @@ class NeuralNet:
             file.write("J = %.5f\n" % self.J)
             file.close()
 
-    # Save the NeuralNet to a file using pickle
-    def pickle_self(self, filepath=None):
-        if filepath is None:
-            filepath = self.filepath_pickleself
-        with open(filepath, 'wb') as file:
-            pickle.dump(self, file)
-
-    # Save the (learned) weights to file using pickle
-    def pickle_thetas(self, filepath=None):
-        if filepath is None:
-            filepath = self.filepath_picklethetas
-        with open(filepath, 'wb') as file:
-            pickle.dump(self.weights, file)
-
-    # Load weights from file using pickle.
+    # Load weights from file using JSON.
     # Don't forget to check if the size of the weights is same as self.shape
     def load_thetas(self, filepath):
-        with open(filepath, 'rb') as file:
-            return pickle.load(file)
+        n = NeuralNet([])
+        n.json_load(filepath)
+        return n.weights
+
+    # Save object to JSON
+    def json_self(self, filepath=None):
+        nn_dict = {}
+        nn_dict['name'] = self.name
+        nn_dict['shape'] = self.shape
+        nn_dict['lambda'] = self._lambda
+        nn_dict['J'] = self.J
+        nn_dict['Jtest'] = self.Jtest
+        nn_dict['filepath_itertext'] = self.filepath_itertext
+        nn_dict['filepath_jsonself'] = self.filepath_jsonself
+
+        if len(self.weights) > 0:
+            nn_dict['weights'] = [w.tolist() for w in self.weights]
+        else:
+            nn_dict['weights'] = None
+
+        if len(self.init_weights) > 0:
+            nn_dict['init_weights'] = [w.tolist() for w in self.init_weights]
+        else:
+            nn_dict['init_weights'] = None
+
+        if filepath is not None:
+            self.filepath_jsonself = filepath
+            with open(filepath, 'w') as file:
+                json.dump(nn_dict, file)
+
+        return json.dumps(nn_dict)
+
+    # Load a NeuralNet from JSON file
+    def json_load(self, filepath):
+        if filepath is not None:
+            with open(filepath, 'r') as file:
+                nn_dict = json.load(file)
+            self.name = nn_dict['name']
+            self.J = nn_dict['J']
+            self.Jtest = nn_dict['Jtest']
+            self._lambda = nn_dict['lambda']
+            self.shape = nn_dict['shape']
+            self.filepath_itertext = nn_dict['filepath_itertext']
+            self.filepath_jsonself = nn_dict['filepath_jsonself']
+
+            if len(nn_dict['weights']) > 0:
+                self.weights = []
+                for w in nn_dict['weights']:
+                    self.weights.append(np.asarray(w))
+            else:
+                self.weights = np.asarray(nn_dict['weights'])
+
+            if len(nn_dict['init_weights']) > 0:
+                self.init_weights = []
+                for w in nn_dict['init_weights']:
+                    self.init_weights.append(np.asarray(w))
+            else:
+                self.init_weights = np.asarray(nn_dict['init_weights'])
+            return self
+        return None
 
 
 #
