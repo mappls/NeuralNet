@@ -189,6 +189,7 @@ class NeuralNet:
         nn_dict['lambda'] = self._lambda
         nn_dict['J'] = self.J
         nn_dict['Jtest'] = self.Jtest
+        nn_dict['layer_count'] = self.layer_count
         nn_dict['filepath_itertext'] = self.filepath_itertext
         nn_dict['filepath_jsonself'] = self.filepath_jsonself
 
@@ -219,6 +220,7 @@ class NeuralNet:
             self.Jtest = nn_dict['Jtest']
             self._lambda = nn_dict['lambda']
             self.shape = nn_dict['shape']
+            self.layer_count = nn_dict['layer_count']
             self.filepath_itertext = nn_dict['filepath_itertext']
             self.filepath_jsonself = nn_dict['filepath_jsonself']
 
