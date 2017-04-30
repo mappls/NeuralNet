@@ -210,8 +210,8 @@ class NeuralNet:
 
         return json.dumps(nn_dict)
 
-    # Load a NeuralNet from JSON file, or from dict-like text: 'nn_text'
-    def json_load(self, filepath=None, nn_text=None):
+    # Load a NeuralNet from JSON file, or from dict-like text: 'nn_dict'
+    def json_load(self, filepath=None, nn_dict=None):
         if filepath is None and nn_dict is None:
             return None
 
