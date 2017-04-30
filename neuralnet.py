@@ -210,35 +210,39 @@ class NeuralNet:
 
         return json.dumps(nn_dict)
 
-    # Load a NeuralNet from JSON file
-    def json_load(self, filepath):
-        if filepath is not None:
+    # Load a NeuralNet from JSON file, or from dict-like text: 'nn_text'
+    def json_load(self, filepath=None, nn_text=None):
+        if filepath is None and nn_dict is None:
+            return None
+
+        # If both filepath and nn_dict are not None, we use nn_dict to load NN
+        if filepath is not None and nn_dict is None:
             with open(filepath, 'r') as file:
                 nn_dict = json.load(file)
-            self.name = nn_dict['name']
-            self.J = nn_dict['J']
-            self.Jtest = nn_dict['Jtest']
-            self._lambda = nn_dict['lambda']
-            self.shape = nn_dict['shape']
-            self.layer_count = nn_dict['layer_count']
-            self.filepath_itertext = nn_dict['filepath_itertext']
-            self.filepath_jsonself = nn_dict['filepath_jsonself']
 
-            if len(nn_dict['weights']) > 0:
-                self.weights = []
-                for w in nn_dict['weights']:
-                    self.weights.append(np.asarray(w))
-            else:
-                self.weights = np.asarray(nn_dict['weights'])
+        self.name = nn_dict['name']
+        self.J = nn_dict['J']
+        self.Jtest = nn_dict['Jtest']
+        self._lambda = nn_dict['lambda']
+        self.shape = nn_dict['shape']
+        self.layer_count = nn_dict['layer_count']
+        self.filepath_itertext = nn_dict['filepath_itertext']
+        self.filepath_jsonself = nn_dict['filepath_jsonself']
 
-            if len(nn_dict['init_weights']) > 0:
-                self.init_weights = []
-                for w in nn_dict['init_weights']:
-                    self.init_weights.append(np.asarray(w))
-            else:
-                self.init_weights = np.asarray(nn_dict['init_weights'])
-            return self
-        return None
+        if len(nn_dict['weights']) > 0:
+            self.weights = []
+            for w in nn_dict['weights']:
+                self.weights.append(np.asarray(w))
+        else:
+            self.weights = np.asarray(nn_dict['weights'])
+
+        if len(nn_dict['init_weights']) > 0:
+            self.init_weights = []
+            for w in nn_dict['init_weights']:
+                self.init_weights.append(np.asarray(w))
+        else:
+            self.init_weights = np.asarray(nn_dict['init_weights'])
+        return self
 
 
 #
