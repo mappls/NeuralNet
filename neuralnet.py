@@ -56,12 +56,10 @@ class NeuralNet:
         self.filepath_jsonself = "nn_" + self.name + ".json"
         self.filepath_itertext = "iters_" + self.name + ".txt"
 
-        # Open a text file to save the cost function of each iteration
-        file = open(self.filepath_itertext, 'w')
-        file.close()
 
     # Forward propagation
     def forward_prop(self, thetas, x):
+        # todo: check if the dimensions of x and thetas are compatible!
         activations = [0] * (self.layer_count + 1)
         activations_bias = [0] * self.layer_count
         activations[0] = x
@@ -152,8 +150,12 @@ class NeuralNet:
     # Method that uses scipy.optimization to minimize J
     # Works well with BFGS method, as weights_interval is larger it takes more time to converge, but succeeds.
     def train_scipy(self, X, Y):
-        print("Learning (BFGS)..")
-        print("---------------")
+
+        # Open a text file to save the cost function of each iteration
+        file = open(self.filepath_itertext, 'w')
+        file.close()
+
+        print("learning ...")
         init_weights_list = wrap_thetas(self.init_weights)
         res = minimize(self.get_J, init_weights_list, method='BFGS', jac=self.get_derivs, options={'disp': True},
                        args=(X, Y))
